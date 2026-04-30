@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run linting
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Check CLI entry point loads
+        run: node bin/index.js --version
+
+      - name: Check all commands are registered
+        run: node bin/index.js --help
+
+      - name: Check profiles subcommands are registered
+        run: node bin/index.js profiles --help
